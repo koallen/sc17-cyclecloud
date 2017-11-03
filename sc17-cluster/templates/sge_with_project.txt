@@ -36,21 +36,30 @@ Order = 20
         Config.OS = linux
         DefaultValue = cycle.image.centos7
     
-        [[[parameter ClusterInit]]]
-        Label = Cluster-Init
-        DefaultValue = =undefined
-        Description = "If set, apply a cluster-init configuration.  Leave blank to run without cluster-init."
-        ParameterType = Cloud.ClusterInit
 
-        [[[parameter ChefRepoVersion]]]
-        Label = Custom Chef
-        DefaultValue = =undefined
-        Description = "If set, use a custom chef version from your Locker."
-        ParameterType = Cloud.ChefRepo
+    [[parameters Project]]
+    Description = "Specify the software project to use for the cluster.
+    Order = 20
+
+        [[[parameter ParameterizedProject]]]
+        Label = Project
+
+        [[[parameter ParameterizedSpec]]]
+        Label = Spec
+        DefaultValue = "default"
+
+        [[[parameter ParameterizedVersion]]]
+        Label = Version
+        DefaultValue = "1.0.0"
+
+        [[[parameter ParameterizedLocker]]]
+        Label = Locker
+        DefaultValue = default
+
         
     [[parameters Node Access]]
     Description = "Specify the credentials required for access to the node.  The Keypair Path specifies the path on local machines for cyclecloud CLI access."
-    Order = 20
+    Order = 30
 
         [[[parameter awsKeypair]]]
         Label = AWS Keypair
@@ -94,7 +103,6 @@ Order = 30
             [[[[record Config.ProviderDefaults]]]]
             AWS = m3.large 
             Azure = Standard_A4
-            Azure_classic = A4
             GCP = n1-standard-4
 
         [[[parameter ExecuteMachineType]]]
@@ -104,7 +112,6 @@ Order = 30
             [[[[record Config.ProviderDefaults]]]]
             AWS = m3.large 
             Azure = Standard_A4
-            Azure_classic = A4
             GCP = n1-standard-4
 
     [[parameters Auto-Scaling]]
@@ -215,22 +222,6 @@ Order = 40
         Conditions.Excluded := CloudProvider !== "Azure"
         ParameterType = Azure.Subnet
 
-    [[parameters Azure Classic Virtual Network Configuration]]
-    Order = 50
-    Conditions.Excluded := CloudProvider !== "Azure_classic"
-
-        [[[parameter azureVirtualNetwork]]]
-        Label = VNet Name
-        Description = Azure Virtual Network
-        Conditions.Required := CloudProvider === "Azure_classic"
-        Conditions.Excluded := CloudProvider !== "Azure_classic"
-
-        [[[parameter azureSubnetName]]]
-        Label = Subnet
-        Description = Azure subnet name
-        Conditions.Required := CloudProvider === "Azure_classic"
-        Conditions.Excluded := CloudProvider !== "Azure_classic"
-
 [cluster Grid Engine]
 FormLayout = selectionpanel
 IconUrl = static/cloud/cluster/ui/ClusterIcon/ogs-icon.png
@@ -247,8 +238,8 @@ Autoscale = $Autoscale
     Credentials = $Credentials    
 
     ImageName = $ImageName
-    ClusterInit = $ClusterInit
-    ChefRepoVersion = $ChefRepoVersion
+    #ClusterInit = $ClusterInit
+    #ChefRepoVersion = $ChefRepoVersion
     SubnetId = ${IfThenElse(CloudProvider==="Azure", azureSubnetId, awsSubnetId)}
 	Region = $Region
 
@@ -257,18 +248,21 @@ Autoscale = $Autoscale
     KeyPairLocation = $keypairLocation
     SecurityGroups = $awsSecurityGroups
 
-    # Azure
     
-    # Azure Classic
-    Azure.VirtualNetwork = ${IfThenElse(CloudProvider==="Azure_classic", azureVirtualNetwork, undefined())}
-    Azure.SubnetName = ${IfThenElse(CloudProvider==="Azure_classic", azureSubnetName, undefined())}
-    Azure.IaaS = ${IfThenElse(CloudProvider==="Azure_classic", true, undefined())}
+
+    # Azure
     
     Username = $Username
     Password = $Password
 
     # GCP
     TagList = $gcpTags
+
+        [[[cluster-init parameterized]]]
+        Project = $ParameterizedProject
+        Spec = $ParameterizedSpec
+        Version = $ParameterizedVersion
+        Locker = $ParameterizedLocker
 
         [[[configuration]]]
         # You can specify Chef attributes using dot notation if needed. For example, you
