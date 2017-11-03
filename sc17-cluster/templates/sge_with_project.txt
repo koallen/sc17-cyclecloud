@@ -281,6 +281,11 @@ Autoscale = $Autoscale
         # Example: run_list=role[sge_master_role], role[monitor], recipe[mysql::server]
         run_list = role[sge_master_role]        
 
+        [[[volume example-vol]]]
+        Size = 100
+        Persistent = true
+        Mount = data
+
         # cycle_server.admin.pass=123456
 
         # Configure Azure external input endpoints (for example SSH)

@@ -1,0 +1,73 @@
+############################
+## SGE Configuration File ##
+############################
+
+[cluster Grid Engine]
+
+# Enable/disable autoscaling
+# The scheduler load will determine the number of execute machines that are started, machines will terminate themselves if they are idle
+# and approaching a billing cycle.
+Autoscale = True
+
+    # defines default values used for all nodes. This is inherited automatically by all nodes.
+    # You can create other nodes like this by adding Abstract = true to them and adding
+    # Extends = foo to the nodes that should inherit the definitions from foo.
+    [[node defaults]]
+    Credentials = azure
+	Region = westus
+    KeyPairLocation = ~/.ssh/cyclecloud.pem
+
+    ## NOTE: You must change this subnet to match what you have access to in the UI
+    SubnetId = scc17-sandbox0/DefaultNetwork_westus/default
+    ImageName = cycle.image.centos7
+    
+
+        [[[cluster-init myproject]]]
+        Project = myproject
+        Spec = default
+        Version = 1.0.0
+        Locker = default
+
+    [[node master]]
+    MachineType = Standard_A4
+    IsReturnProxy = True
+
+        [[[configuration]]]
+        # This is the Chef runlist to use for the node, to customize this add customized recipes and/or roles
+        # Example: run_list=role[sge_master_role], role[monitor], recipe[mysql::server]
+        run_list = role[sge_master_role]        
+
+        [[[volume example-vol]]]
+        Size = 100
+        Persistent = true
+        Mount = data
+
+        [[[configuration cyclecloud.mounts.data]]]
+        mountpoint = /mount
+        fs_type = ext4
+
+        # Configure Azure external input endpoints (for example SSH)
+        [[[input-endpoint SSH]]]
+        PrivatePort = 22
+        PublicPort = 22
+
+        [[[input-endpoint ganglia]]]
+        PrivatePort = 8652
+        PublicPort = 8652        
+
+
+    [[nodearray execute]]
+    MachineType = Standard_H16r
+
+    # The initial number of cores of this type to start when the cluster starts
+    InitialCoreCount= 0
+
+    # The maximum number of cores to start when the cluster is configured for autoscaling
+    MaxCoreCount = 32
+
+        [[[configuration]]]
+         run_list = role[sge_execute_role]
+
+        [[[input-endpoint SSH]]]
+        PrivatePort = 22
+        PublicPort = 55100
