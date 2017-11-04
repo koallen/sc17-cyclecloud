@@ -286,6 +286,15 @@ Autoscale = $Autoscale
         Persistent = true
         Mount = data
 
+        [[[configuration cyclecloud.mounts.data]]]
+        mountpoint = /mount
+        fs_type = ext4
+
+        [[[configuration cyclecloud.exports.nfs_data]]]
+        type = nfs
+        owner = cyclecloud
+        export_path = /mount
+
         # cycle_server.admin.pass=123456
 
         # Configure Azure external input endpoints (for example SSH)
@@ -315,6 +324,11 @@ Autoscale = $Autoscale
 
         [[[configuration]]]
          run_list = role[sge_execute_role]
+
+        [[[configuration cyclecloud.mounts.nfs_data]]]
+        type = nfs
+        mountpoint = /mount
+        export_path = /mount
 
         [[[input-endpoint SSH]]]
         PrivatePort = 22
